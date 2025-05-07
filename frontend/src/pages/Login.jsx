@@ -1,12 +1,15 @@
 import axios from 'axios'
 import React, { useState } from 'react'
 import { useNavigate } from "react-router-dom"
+import { useAuth } from '../context/ContextProvoder'
 
 function Login() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
     const navigate = useNavigate()
+
+    const {login} = useAuth()
 
 
     const handleSubmit = async (e) => {
@@ -16,6 +19,7 @@ function Login() {
                 {email, password}
             )
             if (response.data.success) {
+                login(response.data.user)
                 localStorage.setItem("token", response.data.token)
                 navigate('/')
             }
