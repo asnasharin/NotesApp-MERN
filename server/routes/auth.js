@@ -44,7 +44,7 @@ router.post('/login', async(req,res) => {
             return res.status(401).json({ success: false, message: "wrong credentials"})
         }
 
-        const token = jwt.sign({ id: user._id}, "secretkey", {expiresIn: "5h"})
+        const token = jwt.sign({ id: user._id}, "secretkey", {expiresIn: "15d"})
         return res.status(200).json({ success: true, token, user: {name: user.name}, message: "user login successfull"})
     } catch (error) {
         return res.status(500).json({ success: false, message: "server error"})
