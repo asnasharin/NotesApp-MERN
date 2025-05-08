@@ -22,7 +22,7 @@ router.post('/add', middleware, async (req,res) => {
    
 })
 
-
+// fetch
 router.get("/", async(req, res) => {
     try {
         const notes = await Note.find()
@@ -32,4 +32,43 @@ router.get("/", async(req, res) => {
     }
 })
 
+// edit
+
+router.patch("/edit/:id", async(req, res) => {
+    try {
+        const { id } = req.params
+        const { title, desc } = req.body
+        
+        const updatedNote = await Note.findByIdAndUpdate(
+            id,
+            { $set: { title, desc }},
+            { new: true}
+        )
+
+        if(!updatedNote) {
+            return res.status(404).json({success: false, message: "note not found"})
+        }
+
+        return res.status(200).json({success: true, note: updatedNote})
+    } catch (error) {
+        return res.status(500).json({success:false, message: "error in updating"})
+    }
+})
+
+// delete
+router.delete("/delete/:id", async(req, res) => {
+    try {
+         const {id} = req.params
+         const deletedNote = await Note.findByIdAndDelete(id)
+
+         if (!deletedNote) {
+            return res.status(404).json({ success: false, message: "Note not found" });
+          }
+      
+          return res.status(200).json({ success: true, message: "Note deleted successfully" });
+        } catch (error) {
+          console.error("Error deleting note:", error);
+          return res.status(500).json({ success: false, message: "Server error" });
+        }
+})
 export default router
