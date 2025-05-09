@@ -8,22 +8,27 @@ import NoteCard from '../components/NoteCard'
 function Home() {
   const [isModalOpen, setModalOpen] = useState()
   const [notes, setNotes] = useState([])
+  const [loading, setLoading] = useState(false)
   const [currentNote, setcurrentNote] = useState(null)
+  const [filteredNotes, setFilteredNotes] = useState(false)
+  const [query, setQuery] = useState("")
   const navigate = useNavigate()
 
-
-  const fetchNotes = async () => {
-    try {
-      const { data } = await axios.get("http://localhost:5000/api/note")
-      setNotes(data.notes)
-    } catch (error) {
-      console.log(error)
-    }
-  }
 
   useEffect(() => {
     fetchNotes()
   }, [])
+
+
+  useEffect(() => {
+    setFilteredNotes(
+      notes.filter((note) => 
+        note.title.toLowerCase().includes(query.toLowerCase()) ||
+        note.desc.toLowerCase().includes(query.toLowerCase())
+      )
+    )
+  }, [query, notes])
+   
 
   const closeModal = () => {
     setcurrentNote(null)
@@ -33,6 +38,24 @@ function Home() {
   const handleEditNote = (node) => {
     setcurrentNote(node)
     setModalOpen(true)
+  }
+
+
+  
+  const fetchNotes = async () => {
+    setLoading(true)
+    try {
+      const { data } = await axios.get("http://localhost:5000/api/note", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+      setNotes(data.notes)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleDeleteNote = async (id) => {
@@ -91,21 +114,32 @@ const editNote = async (id, title, desc) => {
     console.log(error)
 }
 }
- 
+
+
   return (
     <div className='bg-gray-100 min-h-screen'>
-    <Navbar />
-
+    <Navbar setQuery={setQuery}/>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-      {notes.map(note => (
-        <NoteCard 
-          key={note._id}
-          note={note}
-          onDelete={handleDeleteNote}
-          onEdit={handleEditNote}
-        />
-      ))}
-    </div>
+  {
+    loading ? (
+      <p className="text-center w-full col-span-full">Loading notes...</p>
+    ) : (
+      filteredNotes && filteredNotes.length > 0 ? (
+        filteredNotes.map((note) => (
+          <NoteCard 
+            key={note._id}
+            note={note}
+            onDelete={handleDeleteNote}
+            onEdit={handleEditNote}
+          />
+        ))
+      ) : (
+        <p className="text-center w-full col-span-full">No Notes</p>
+      )
+    )
+  }
+</div>
+
     <button 
     className='fixed right-4 bottom-4 text-2xl bg-teal-500 text-white font-bold p-4 rounded-full'
     onClick={() => setModalOpen(true)}
